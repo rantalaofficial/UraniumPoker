@@ -1,0 +1,710 @@
+body {
+    margin: 0;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+    background-color: #2a7d2e;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    padding: 10px;
+    position: relative;
+}
+
+.title-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.game-title {
+    font-size: clamp(28px, 4vw, 48px);
+    margin: 0;
+    margin-top: 10px;
+    text-shadow: 4px 4px 0 #000,
+                -4px -4px 0 #000,
+                4px -4px 0 #000,
+                -4px 4px 0 #000;
+    white-space: nowrap;
+}
+
+.decorative-cards {
+    position: relative;
+    width: 100px;
+    height: 70px;
+}
+
+.deco-card {
+    position: absolute;
+    width: 60px;
+    height: 87px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.decorative-cards.left .deco-card {
+    right: 0;
+}
+
+.decorative-cards.right .deco-card {
+    left: 0;
+}
+
+.info-panel {
+    margin-bottom: 0;
+}
+
+.payout-tables {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 900px;
+}
+
+.payout-table {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 10px;
+    flex: 1;
+    min-width: 280px;
+    max-width: 440px;
+}
+
+.payout-table h3 {
+    margin: 0 0 10px 0;
+    font-size: clamp(16px, 2vw, 20px);
+}
+
+.payout-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: clamp(12px, 1.5vw, 16px);
+}
+
+.payout-table td {
+    padding: 3px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.payout-table td:last-child {
+    text-align: right;
+}
+
+.payout-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.hand-example {
+    display: flex;
+    gap: 2px;
+    padding: 3px 0;
+}
+
+.mini-card {
+    width: 25px;
+    height: 35px;
+    background-color: white;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.mini-card.red {
+    color: #d40000;
+}
+
+.mini-card.black {
+    color: #000000;
+}
+
+.cards-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    min-height: 180px;
+    position: relative;
+    padding-left: 140px;
+    margin: 40px auto 20px;
+    max-width: 900px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.deck-position {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.deck-card {
+    width: 120px;
+    height: 174px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.card-slot {
+    position: relative;
+    width: 120px;
+    height: 174px;
+    cursor: pointer;
+}
+
+.card-image {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    display: block;
+    transition: opacity 0.3s ease-out;
+}
+
+.card-image[src]:not([src=""]) {
+    opacity: 1;
+}
+
+.card-image.dealt {
+    animation: dealCard 0.5s ease-out forwards;
+}
+
+@keyframes dealCard {
+    0% {
+        transform: translateX(-160px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.lock-label {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff4444;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 3px;
+    font-weight: bold;
+    display: none;
+    z-index: 10;
+}
+
+.card-slot.locked .lock-label {
+    display: block;
+}
+
+.status-panel {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 0 10px;
+    padding-top: 10px;
+    margin: 10px auto;
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+}
+
+.message {
+    font-size: 24px;
+    font-weight: bold;
+    min-height: 24px;
+    line-height: 1;
+    color: #ffd700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    margin: 0;
+    text-align: left;
+    flex: 1;
+}
+
+.balance-text {
+    transition: transform 0.1s ease-out;
+    margin: 0;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.balance-text.bounce {
+    animation: balanceBounce 0.5s ease-out;
+}
+
+.balance-text.bounce-small {
+    animation: balanceCount 1s ease-out;
+}
+
+.balance-text.bounce-large {
+    animation: balanceCount 2s ease-out;
+}
+
+@keyframes balanceBounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    75% { transform: scale(0.95); }
+    100% { transform: scale(1); }
+}
+
+@keyframes balanceCount {
+    0% { transform: scale(1); }
+    10% { transform: scale(1.1); }
+    90% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.card-slot .card-image.winning {
+    animation: cardWin 0.3s ease-out forwards;
+    opacity: 1 !important;
+    z-index: 1;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+}
+
+@keyframes cardWin {
+    0% { 
+        transform: translateY(0);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    100% { 
+        transform: translateY(-20px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+    }
+}
+
+.payout-table tr.highlight {
+    border: 2px solid white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.button-container {
+    margin: 20px auto;
+    height: auto;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    order: 1;
+}
+
+#dealButton {
+    padding: 25px 100px;
+    font-size: 32px;
+    background-color: #ffd700;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    margin: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    transition: all 0.2s ease-out;
+    transform-origin: center bottom;
+    animation: buttonGlow 2s infinite;
+    min-width: 300px;
+}
+
+@keyframes buttonGlow {
+    0% {
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3),
+                   0 0 20px rgba(255, 215, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3),
+                   0 0 50px rgba(255, 215, 0, 0.6);
+    }
+    100% {
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3),
+                   0 0 20px rgba(255, 215, 0, 0.3);
+    }
+}
+
+#dealButton:hover {
+    background-color: #ffed4a;
+    transform: translateY(-3px) scale(1.02);
+    animation: buttonGlowHover 1s infinite;
+}
+
+@keyframes buttonGlowHover {
+    0% {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3),
+                   0 0 30px rgba(255, 215, 0, 0.4);
+    }
+    50% {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3),
+                   0 0 70px rgba(255, 215, 0, 0.7);
+    }
+    100% {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3),
+                   0 0 30px rgba(255, 215, 0, 0.4);
+    }
+}
+
+#dealButton:active {
+    transform: translateY(2px) scale(0.98);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3),
+                0 0 20px rgba(255, 215, 0, 0.2);
+    animation: none;
+}
+
+#dealButton.hidden {
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+    animation: none;
+}
+
+.instructions-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 10px auto 0;
+    padding: 15px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    text-align: center;
+    font-size: clamp(12px, 1.5vw, 14px);
+    box-sizing: border-box;
+    order: 2;
+}
+
+.instructions-text {
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+.bet-controls {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-right: 20px;
+    height: 48px;
+    align-self: center;
+}
+
+.bet-display {
+    background: white;
+    color: black;
+    padding: 10px 20px;
+    border-radius: 0;
+    font-weight: bold;
+    font-size: 24px;
+    min-width: 140px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bet-button {
+    background: white;
+    border: none;
+    color: black;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 15px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.bet-button.decrease-bet {
+    border-radius: 8px 0 0 8px;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.bet-button.increase-bet {
+    border-radius: 0 8px 8px 0;
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.bet-button:hover {
+    transform: none;
+    background-color: #f0f0f0;
+}
+
+.bet-button:active {
+    transform: none;
+    background-color: #e0e0e0;
+}
+
+.bet-button.hidden {
+    display: none;
+}
+
+.message.game-over {
+    color: #ff4444;
+    font-size: 28px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 5px;
+    }
+
+    .game-container {
+        gap: 5px;
+        padding: 5px;
+    }
+
+    .decorative-cards {
+        display: none;
+    }
+
+    .hand-example {
+        display: none;
+    }
+
+    .payout-table {
+        padding: 8px;
+        min-width: 200px;
+    }
+
+    .payout-table td {
+        padding: 2px;
+    }
+
+    .cards-container {
+        margin: 30px auto 15px;
+        padding-left: 100px;
+        min-height: 140px;
+        gap: 5px;
+    }
+
+    .deck-card {
+        width: 90px;
+        height: 130px;
+    }
+
+    .card-slot {
+        width: 90px;
+        height: 130px;
+    }
+
+    #dealButton {
+        padding: 20px 60px;
+        font-size: 28px;
+        min-width: 280px;
+    }
+
+    .status-panel {
+        padding: 0 5px;
+        gap: 10px;
+    }
+
+    .message {
+        font-size: 18px;
+        min-height: 18px;
+    }
+
+    .balance-text {
+        font-size: 18px;
+    }
+
+    .instructions-container {
+        padding: 10px;
+    }
+
+    .bet-display {
+        font-size: 20px;
+        min-width: 120px;
+        padding: 8px 15px;
+    }
+
+    .bet-button {
+        font-size: 20px;
+        padding: 0 12px;
+    }
+
+    .bet-controls {
+        height: 44px;
+    }
+
+    .mini-card {
+        width: 20px;
+        height: 28px;
+        font-size: 10px;
+    }
+
+    .game-title {
+        font-size: clamp(24px, 3.5vw, 36px);
+    }
+}
+
+@media (max-width: 480px) {
+    .status-panel {
+        flex-direction: column;
+        gap: 5px;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .message {
+        text-align: center;
+    }
+
+    .cards-container {
+        margin: 25px auto 10px;
+        padding-left: 70px;
+    }
+
+    #dealButton {
+        padding: 20px 40px;
+        font-size: 32px;
+        width: calc(100% - 20px);
+        min-width: 0;
+        margin: 10px;
+    }
+
+    .button-container {
+        margin: 15px auto;
+    }
+
+    .button-container {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .bet-controls {
+        margin-right: 0;
+        margin-bottom: 10px;
+        align-self: stretch;
+    }
+}
+
+.debug-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.95);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    color: white;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: none;
+}
+
+.debug-popup h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #ffd700;
+}
+
+.debug-selected {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    min-height: 40px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.debug-suit {
+    margin-bottom: 15px;
+}
+
+.debug-suit-title {
+    color: #ffd700;
+    margin-bottom: 5px;
+}
+
+.debug-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+    gap: 5px;
+}
+
+.debug-cards .mini-card {
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.debug-cards .mini-card:hover {
+    transform: translateY(-2px);
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.debug-cards .mini-card.selected {
+    background-color: #4CAF50;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .debug-popup {
+        padding: 15px;
+    }
+    
+    .debug-cards {
+        grid-template-columns: repeat(auto-fill, minmax(25px, 1fr));
+        gap: 3px;
+    }
+}
+
+.debug-password {
+    background-color: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    border-radius: 4px;
+    color: #4CAF50;
+    padding: 5px 10px;
+    font-size: 12px;
+    width: 120px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.debug-password::placeholder {
+    color: rgba(76, 175, 80, 0.5);
+}
+
+.debug-password:focus {
+    background-color: rgba(76, 175, 80, 0.2);
+    border-color: rgba(76, 175, 80, 0.5);
+}
+
+@media (max-width: 768px) {
+    .debug-password {
+        font-size: 11px;
+        padding: 4px 8px;
+        width: 100px;
+    }
+} 

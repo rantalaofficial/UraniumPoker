@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uranium Poker</title>
+    <link rel="icon" href="/favicon/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <div class="title-container">
+            <div class="decorative-cards left">
+                <img src="card_textures/card_back.png" class="deco-card" style="transform: rotate(-15deg)">
+                <img src="card_textures/card_back.png" class="deco-card" style="transform: rotate(-5deg)">
+                <img src="card_textures/card_back.png" class="deco-card" style="transform: rotate(5deg)">
+            </div>
+            <h1 class="game-title">Uranium Poker</h1>
+            <div class="decorative-cards right">
+                <img src="card_textures/card_back.png" class="deco-card" style="transform: rotate(-5deg)">
+                <img src="card_textures/card_back.png" class="deco-card" style="transform: rotate(5deg)">
+                <img src="card_textures/card_back.png" class="deco-card" style="transform: rotate(15deg)">
+            </div>
+        </div>
+
+        <div class="status-panel">
+            <div id="message" class="message"></div>
+            <div class="info-panel">
+                <h2 class="balance-text">Balance: <span id="balance">1000</span>€</h2>
+            </div>
+        </div>
+
+        <div class="payout-tables">
+            <div class="payout-table">
+                <h3>High Hands</h3>
+                <table>
+                    <tr>
+                        <td class="hand-example">
+                            <div class="mini-card red">T♥</div>
+                            <div class="mini-card red">J♥</div>
+                            <div class="mini-card red">Q♥</div>
+                            <div class="mini-card red">K♥</div>
+                            <div class="mini-card red">A♥</div>
+                        </td>
+                        <td>Royal Flush</td>
+                        <td>800€</td>
+                    </tr>
+                    <tr>
+                        <td class="hand-example">
+                            <div class="mini-card black">4♣</div>
+                            <div class="mini-card black">5♣</div>
+                            <div class="mini-card black">6♣</div>
+                            <div class="mini-card black">7♣</div>
+                            <div class="mini-card black">8♣</div>
+                        </td>
+                        <td>Straight Flush</td>
+                        <td>500€</td>
+                    </tr>
+                    <tr>
+                        <td class="hand-example">
+                            <div class="mini-card red">Q♥</div>
+                            <div class="mini-card red">Q♦</div>
+                            <div class="mini-card black">Q♣</div>
+                            <div class="mini-card black">Q♠</div>
+                        </td>
+                        <td>Four of a Kind</td>
+                        <td>250€</td>
+                    </tr>
+                    <tr>
+                        <td class="hand-example">
+                            <div class="mini-card red">T♥</div>
+                            <div class="mini-card red">T♦</div>
+                            <div class="mini-card black">T♣</div>
+                            <div class="mini-card red">K♥</div>
+                            <div class="mini-card red">K♦</div>
+                        </td>
+                        <td>Full House</td>
+                        <td>150€</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="payout-table">
+                <h3>Other Hands</h3>
+                <table>
+                    <tr>
+                        <td class="hand-example">
+                            <div class="mini-card red">2♥</div>
+                            <div class="mini-card red">5♥</div>
+                            <div class="mini-card red">7♥</div>
+                            <div class="mini-card red">J♥</div>
+                            <div class="mini-card red">K♥</div>
+                        </td>
+                        <td>Flush</td>
+                        <td>100€</td>
+                    </tr>
+                    <tr>
+                        <td class="hand-example">
+                            <div class="mini-card red">7♥</div>
+                            <div class="mini-card red">8♦</div>
+                            <div class="mini-card black">9♣</div>
+                            <div class="mini-card black">T♠</div>
+                            <div class="mini-card red">J♥</div>
+                        </td>
+                        <td>Straight</td>
+                        <td>60€</td>
+                    </tr>
+                    <tr>
+                        <td class="hand-example">
+                            <div class="mini-card red">J♥</div>
+                            <div class="mini-card red">J♦</div>
+                            <div class="mini-card black">J♣</div>
+                        </td>
+                        <td>Three of a Kind</td>
+                        <td>30€</td>
+                    </tr>
+                    <tr>
+                        <td class="hand-example">
+                            <div class="mini-card red">Q♥</div>
+                            <div class="mini-card red">Q♦</div>
+                            <div class="mini-card black">T♣</div>
+                            <div class="mini-card black">T♠</div>
+                        </td>
+                        <td>Two Pair</td>
+                        <td>20€</td>
+                    </tr>
+                    <tr>
+                        <td class="hand-example">
+                            <div class="mini-card red">J♥</div>
+                            <div class="mini-card red">J♦</div>
+                        </td>
+                        <td>Jacks or Better</td>
+                        <td>10€</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="cards-container">
+            <div class="deck-position">
+                <img src="card_textures/card_back.png" class="deck-card" alt="Deck">
+            </div>
+            <div class="card-slot" data-index="0">
+                <div class="lock-label">LOCKED</div>
+                <img src="" alt="Card 1" class="card-image">
+            </div>
+            <div class="card-slot" data-index="1">
+                <div class="lock-label">LOCKED</div>
+                <img src="" alt="Card 2" class="card-image">
+            </div>
+            <div class="card-slot" data-index="2">
+                <div class="lock-label">LOCKED</div>
+                <img src="" alt="Card 3" class="card-image">
+            </div>
+            <div class="card-slot" data-index="3">
+                <div class="lock-label">LOCKED</div>
+                <img src="" alt="Card 4" class="card-image">
+            </div>
+            <div class="card-slot" data-index="4">
+                <div class="lock-label">LOCKED</div>
+                <img src="" alt="Card 5" class="card-image">
+            </div>
+        </div>
+
+        <div class="button-container">
+            <div class="bet-controls">
+                <button class="bet-button decrease-bet">◀</button>
+                <div class="bet-display">10€</div>
+                <button class="bet-button increase-bet">▶</button>
+            </div>
+            <button id="dealButton">Deal</button>
+        </div>
+        
+        <div class="instructions-container">
+            <p class="instructions-text">
+                Click 'Deal' to start a new game. Use the arrow buttons to adjust your bet amount. After the cards are dealt, click on the cards you want to keep - they will be marked as 'LOCKED'. 
+                Then click 'Draw' to replace the unlocked cards and see if you've won!
+            </p>
+            <input type="text" class="debug-password" placeholder="password">
+        </div>
+
+        <div class="debug-popup">
+            <h3>Select next hand (5 cards)</h3>
+            <div class="debug-selected"></div>
+            <div class="debug-suit">
+                <div class="debug-suit-title">♥ Hearts</div>
+                <div class="debug-cards hearts"></div>
+            </div>
+            <div class="debug-suit">
+                <div class="debug-suit-title">♦ Diamonds</div>
+                <div class="debug-cards diamonds"></div>
+            </div>
+            <div class="debug-suit">
+                <div class="debug-suit-title">♣ Clubs</div>
+                <div class="debug-cards clubs"></div>
+            </div>
+            <div class="debug-suit">
+                <div class="debug-suit-title">♠ Spades</div>
+                <div class="debug-cards spades"></div>
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html> 

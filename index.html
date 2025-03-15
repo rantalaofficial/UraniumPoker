@@ -161,6 +161,15 @@
                 <div class="lock-label">LOCKED</div>
                 <img src="" alt="Card 5" class="card-image">
             </div>
+            <div class="uranium-meter">
+                <div class="uranium-meter-label">URANIUM</div>
+                <div class="uranium-meter-container">
+                    <div class="uranium-liquid">
+                        <div class="uranium-surface"></div>
+                    </div>
+                    <div class="uranium-percentage">0%</div>
+                </div>
+            </div>
         </div>
 
         <div class="button-container">
@@ -172,10 +181,21 @@
             <button id="dealButton">Deal</button>
         </div>
         
+        <div class="auto-lock-container">
+            <label class="auto-lock-label">
+                <input type="checkbox" id="autoLockCheckbox" class="auto-lock-checkbox">
+                <span class="checkmark"></span>
+                Auto Lock (Automatically locks matching card combinations)
+            </label>
+        </div>
+
         <div class="instructions-container">
             <p class="instructions-text">
                 Click 'Deal' to start a new game. Use the arrow buttons to adjust your bet amount. After the cards are dealt, click on the cards you want to keep - they will be marked as 'LOCKED'. 
                 Then click 'Draw' to replace the unlocked cards and see if you've won!
+            </p>
+            <p class="instructions-text uranium-instructions">
+                <span class="uranium-highlight">Uranium:</span> The meter fills with each losing hand. When it reaches 100%, a meltdown occurs on your next deal, guaranteeing a hand with only face cards (J, Q, K, A)!
             </p>
             <input type="text" class="debug-password" placeholder="password">
         </div>
@@ -201,6 +221,8 @@
             </div>
         </div>
     </div>
+    <script src="poker.js"></script>
+    <script src="gui.js"></script>
     <script src="game.js"></script>
 </body>
 </html> 

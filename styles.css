@@ -13,10 +13,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex: 1;
+    display: block;
     padding: 10px;
     position: relative;
 }
@@ -150,6 +147,7 @@ body {
     max-width: 900px;
     width: 100%;
     box-sizing: border-box;
+    padding-right: 60px;
 }
 
 .deck-position {
@@ -311,7 +309,6 @@ body {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    order: 1;
 }
 
 #dealButton {
@@ -391,7 +388,6 @@ body {
     text-align: center;
     font-size: clamp(12px, 1.5vw, 14px);
     box-sizing: border-box;
-    order: 2;
 }
 
 .instructions-text {
@@ -401,6 +397,17 @@ body {
     line-height: 1.6;
     margin: 0;
     margin-bottom: 10px;
+}
+
+.uranium-instructions {
+    border-top: 1px solid rgba(255, 255, 0, 0.3);
+    padding-top: 10px;
+}
+
+.uranium-highlight {
+    color: yellow;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(255, 255, 0, 0.7);
 }
 
 .bet-controls {
@@ -502,6 +509,7 @@ body {
         padding-left: 100px;
         min-height: 140px;
         gap: 5px;
+        padding-right: 50px;
     }
 
     .deck-card {
@@ -562,6 +570,15 @@ body {
     .game-title {
         font-size: clamp(24px, 3.5vw, 36px);
     }
+
+    .uranium-meter-container {
+        width: 25px;
+        height: 120px;
+    }
+    
+    .uranium-meter-label {
+        font-size: 12px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -579,6 +596,7 @@ body {
     .cards-container {
         margin: 25px auto 10px;
         padding-left: 70px;
+        padding-right: 40px;
     }
 
     #dealButton {
@@ -602,6 +620,15 @@ body {
         margin-right: 0;
         margin-bottom: 10px;
         align-self: stretch;
+    }
+
+    .uranium-meter-container {
+        width: 20px;
+        height: 100px;
+    }
+    
+    .uranium-meter-label {
+        font-size: 10px;
     }
 }
 
@@ -706,5 +733,296 @@ body {
         font-size: 11px;
         padding: 4px 8px;
         width: 100px;
+    }
+}
+
+/* Auto Lock Checkbox Styles */
+.game-container > .auto-lock-container {
+    margin: 15px auto;
+    max-width: 500px;
+    text-align: left;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    clear: both;
+    display: block;
+}
+
+.auto-lock-label {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 40px;
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
+    color: white;
+    min-height: 25px;
+    line-height: 1.2;
+}
+
+/* Hide the default checkbox */
+.auto-lock-checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+/* Create a custom checkbox */
+.checkmark {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: white;
+    border: 2px solid #000;
+    border-radius: 4px;
+    transform: translateY(-50%);
+}
+
+/* On mouse-over, add a grey background color */
+.auto-lock-label:hover .checkmark {
+    background-color: #f0f0f0;
+}
+
+/* When the checkbox is checked, add a checkmark */
+.auto-lock-checkbox:checked ~ .checkmark:after {
+    content: "✓";
+    position: absolute;
+    display: block;
+    font-size: 26px;
+    top: -5px;
+    left: 3px;
+    color: black;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .auto-lock-container {
+        max-width: 100%;
+    }
+    
+    .auto-lock-label {
+        font-size: 14px;
+        padding-left: 35px;
+    }
+    
+    .checkmark {
+        height: 22px;
+        width: 22px;
+    }
+    
+    .auto-lock-checkbox:checked ~ .checkmark:after {
+        font-size: 22px;
+        top: -4px;
+        left: 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auto-lock-label {
+        font-size: 12px;
+        padding-left: 30px;
+    }
+    
+    .checkmark {
+        height: 20px;
+        width: 20px;
+    }
+    
+    .auto-lock-checkbox:checked ~ .checkmark:after {
+        font-size: 20px;
+        top: -3px;
+        left: 2px;
+    }
+}
+
+/* Uranium Meter Styles */
+.uranium-meter {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    z-index: 5;
+}
+
+.uranium-meter-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: yellow;
+    text-shadow: 0 0 5px rgba(255, 255, 0, 0.7);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.uranium-meter-container {
+    width: 50px;
+    height: 150px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 4px solid #000;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5), inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.uranium-meter-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, 
+        rgba(255, 255, 255, 0.5) 0%, 
+        rgba(255, 255, 255, 0.2) 20%, 
+        rgba(255, 255, 255, 0) 60%);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.uranium-liquid {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%; /* Start at 0% */
+    background: linear-gradient(to bottom, #ffff00, #cc9900);
+    transition: height 1s ease-in-out;
+    box-shadow: 0 0 20px 8px rgba(255, 255, 0, 0.6);
+    animation: glowPulse 2s infinite alternate, colorShift 4s infinite alternate;
+}
+
+.uranium-liquid::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 50%),
+        radial-gradient(circle at 30% 60%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 40%);
+    z-index: 1;
+}
+
+.uranium-surface {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    animation: waveSurface 2s ease-in-out infinite;
+    z-index: 2;
+}
+
+.uranium-percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: black;
+    font-weight: bold;
+    font-size: 16px;
+    z-index: 3;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 1);
+}
+
+/* Remove the measurement marks from the container */
+.uranium-meter-container::after {
+    content: none;
+}
+
+@keyframes waveSurface {
+    0% {
+        transform: translateY(-2px) scaleX(0.8);
+    }
+    50% {
+        transform: translateY(2px) scaleX(1.2);
+    }
+    100% {
+        transform: translateY(-2px) scaleX(0.8);
+    }
+}
+
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 0 20px 8px rgba(255, 255, 0, 0.6);
+    }
+    100% {
+        box-shadow: 0 0 30px 12px rgba(255, 255, 0, 0.8);
+    }
+}
+
+@keyframes colorShift {
+    0% {
+        background: linear-gradient(to bottom, #ffff00, #cc9900);
+    }
+    50% {
+        background: linear-gradient(to bottom, #ffff33, #e6b800);
+    }
+    100% {
+        background: linear-gradient(to bottom, #ffff66, #b38600);
+    }
+}
+
+@keyframes tankShake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    75% { transform: translateX(-3px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes violentShake {
+    0% { transform: translate(0, 0) rotate(0); }
+    10% { transform: translate(-5px, -3px) rotate(-2deg); }
+    20% { transform: translate(5px, 3px) rotate(2deg); }
+    30% { transform: translate(-5px, 2px) rotate(-1deg); }
+    40% { transform: translate(5px, -2px) rotate(1deg); }
+    50% { transform: translate(-5px, -3px) rotate(-3deg); }
+    60% { transform: translate(5px, 3px) rotate(3deg); }
+    70% { transform: translate(-5px, 2px) rotate(-2deg); }
+    80% { transform: translate(5px, -2px) rotate(2deg); }
+    90% { transform: translate(-3px, -1px) rotate(-1deg); }
+    100% { transform: translate(0, 0) rotate(0); }
+}
+
+@media (max-width: 768px) {
+    .uranium-meter-container {
+        width: 40px;
+        height: 120px;
+    }
+    
+    .uranium-meter-label {
+        font-size: 12px;
+    }
+    
+    .uranium-percentage {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .uranium-meter-container {
+        width: 35px;
+        height: 100px;
+    }
+    
+    .uranium-meter-label {
+        font-size: 10px;
+    }
+    
+    .uranium-percentage {
+        font-size: 12px;
     }
 } 

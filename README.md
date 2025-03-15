@@ -3,5 +3,6 @@ A simple poker game made with HTML + JS + Cursor
 
 Screenshot:
 
-![image](https://github.com/user-attachments/assets/53294690-f00b-41f2-ae34-1affde0e15f4)
+<img width="1455" alt="image" src="https://github.com/user-attachments/assets/f017230a-c461-4ebb-a762-b8a5a96ab533" />
+
 

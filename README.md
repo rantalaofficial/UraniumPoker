@@ -1,5 +1,5 @@
 # UraniumPoker
-A simple poker game made with HTML + JS + Cursor
+A Video poker game with "Uranium meltdown twist :)" made with HTML + JS + Cursor. Available at: https://rantalaofficial.github.io/UraniumPoker/
 
 Screenshot:
 

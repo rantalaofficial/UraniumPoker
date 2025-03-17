@@ -22,6 +22,10 @@
                 <img src="card_textures/card_back.png" class="deco-card" style="transform: rotate(5deg)">
                 <img src="card_textures/card_back.png" class="deco-card" style="transform: rotate(15deg)">
             </div>
+            <div class="nuke-container">
+                <img src="other_textures/nuke.png" alt="Nuke" class="nuke-image">
+                <div class="nuke-percentage">Nuke 0% Completed</div>
+            </div>
         </div>
 
         <div class="status-panel">
@@ -78,12 +82,6 @@
                         <td>Full House</td>
                         <td>150€</td>
                     </tr>
-                </table>
-            </div>
-            
-            <div class="payout-table">
-                <h3>Other Hands</h3>
-                <table>
                     <tr>
                         <td class="hand-example">
                             <div class="mini-card red">2♥</div>
@@ -95,6 +93,12 @@
                         <td>Flush</td>
                         <td>100€</td>
                     </tr>
+                </table>
+            </div>
+            
+            <div class="payout-table">
+                <h3>Other Hands</h3>
+                <table>
                     <tr>
                         <td class="hand-example">
                             <div class="mini-card red">7♥</div>
@@ -143,10 +147,12 @@
             </div>
             <div class="card-slot" data-index="0">
                 <div class="lock-label">LOCKED</div>
+                <div class="dealer-label">DEALER</div>
                 <img src="" alt="Card 1" class="card-image">
             </div>
             <div class="card-slot" data-index="1">
                 <div class="lock-label">LOCKED</div>
+                <div class="dealer-label">DEALER</div>
                 <img src="" alt="Card 2" class="card-image">
             </div>
             <div class="card-slot" data-index="2">
@@ -155,30 +161,36 @@
             </div>
             <div class="card-slot" data-index="3">
                 <div class="lock-label">LOCKED</div>
+                <div class="player-label">YOU</div>
                 <img src="" alt="Card 4" class="card-image">
             </div>
             <div class="card-slot" data-index="4">
                 <div class="lock-label">LOCKED</div>
+                <div class="player-label">YOU</div>
                 <img src="" alt="Card 5" class="card-image">
-            </div>
-            <div class="uranium-meter">
-                <div class="uranium-meter-label">URANIUM</div>
-                <div class="uranium-meter-container">
-                    <div class="uranium-liquid">
-                        <div class="uranium-surface"></div>
-                    </div>
-                    <div class="uranium-percentage">0%</div>
-                </div>
             </div>
         </div>
 
         <div class="button-container">
-            <div class="bet-controls">
-                <button class="bet-button decrease-bet">◀</button>
-                <div class="bet-display">10€</div>
-                <button class="bet-button increase-bet">▶</button>
+            <div class="game-buttons">
+                <button id="dealButton" class="lamp-button yellow">
+                    <div class="button-content">
+                        <span class="main-label">Deal</span>
+                        <div class="shortcut-label">[Space]</div>
+                    </div>
+                </button>
+                <button id="doubleButton" class="lamp-button purple">
+                    <div class="button-content">
+                        <span class="main-label">Double</span>
+                        <div class="shortcut-label">[Enter]</div>
+                    </div>
+                </button>
             </div>
-            <button id="dealButton">Deal</button>
+            <div class="bet-controls">
+                <button class="bet-button decrease-bet"><span>◀</span></button>
+                <div class="bet-display"><span>Bet: 10€</span></div>
+                <button class="bet-button increase-bet"><span>▶</span></button>
+            </div>
         </div>
         
         <div class="auto-lock-container">
@@ -188,16 +200,21 @@
                 Auto Lock (Automatically locks matching card combinations)
             </label>
         </div>
+        
+        <button class="instructions-button" id="instructionsButton">Help</button>
 
-        <div class="instructions-container">
+        <div class="instructions-popup" id="instructionsPopup">
+            <button class="close-button" id="closeInstructionsButton">×</button>
+            <h3>How to Play Uranium Poker</h3>
             <p class="instructions-text">
-                Click 'Deal' to start a new game. Use the arrow buttons to adjust your bet amount. After the cards are dealt, click on the cards you want to keep - they will be marked as 'LOCKED'. 
-                Then click 'Draw' to replace the unlocked cards and see if you've won!
+                Click 'Deal' to start a new game. Adjust your bet with arrows. Click cards to LOCK them, then click Draw to replace the rest.
+            </p>
+            <p class="instructions-text">
+                After a win, click Double to gamble winnings against the dealer. A pair always beats a high card, and a higher pair beats a lower pair. If both have high cards, the highest card wins. If there's a tie, the dealer wins.
             </p>
             <p class="instructions-text uranium-instructions">
                 <span class="uranium-highlight">Uranium:</span> The meter fills with each losing hand. When it reaches 100%, a meltdown occurs on your next deal, guaranteeing a hand with only face cards (J, Q, K, A)!
             </p>
-            <input type="text" class="debug-password" placeholder="password">
         </div>
 
         <div class="debug-popup">
@@ -224,5 +241,6 @@
     <script src="poker.js"></script>
     <script src="gui.js"></script>
     <script src="game.js"></script>
+    <input type="text" class="debug-password" placeholder="password">
 </body>
 </html> 

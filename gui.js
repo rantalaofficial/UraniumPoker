@@ -9,8 +9,17 @@ class PokerGUI {
         this.isFirstDeal = true;
         this.balance = 1000;
         this.currentBet = 10;
-        this.betOptions = [1, 5, 10, 50, 100];
+        const betOptions = [];
+        for (let i = 1; i <= 1000000; i *= 10) {
+            betOptions.push(i);
+            if (i * 5 <= 1000000) {
+                betOptions.push(i * 5);
+            }
+        }
+        this.betOptions = betOptions;
         this.currentBetIndex = 2; // Start with 10€
+        this.doubleMode = false;
+        this.lastWinAmount = 0;
         
         // Debug mode state
         this.debugMode = false;
@@ -20,6 +29,7 @@ class PokerGUI {
         // Initialize sound effects
         this.cardFlipSound = new Audio('sounds/card_flip.m4a');
         this.winSound = new Audio('sounds/win_sound.mp3');
+        this.explosionSound = new Audio('sounds/explosion.m4a');
         
         // Store the poker game instance
         this.pokerGame = pokerGame;
@@ -38,10 +48,14 @@ class PokerGUI {
         this.uraniumLevel = 0;
         this.updateUraniumMeter(this.uraniumLevel);
         
+        // Hide nuke-container initially
+        $('.nuke-container').hide();
+        
         this.setupEventListeners();
         this.updateBetDisplay();
         this.showBetButtons();
-        $('#dealButton').text('Deal'); // Ensure button shows "Deal" initially
+        $('#dealButton').html('<div class="button-content"><span class="main-label">Deal</span><div class="shortcut-label">[Space]</div></div>'); // Ensure button shows "Deal" initially
+        $('#doubleButton').addClass('unlit'); // Double button starts as unlit
         this.initializeDebugMode();
         $('.debug-popup').hide();
     }
@@ -49,11 +63,41 @@ class PokerGUI {
     // Set up all event listeners
     setupEventListeners() {
         // Deal button
-        $('#dealButton').click(() => this.dealCards());
+        $('#dealButton').click(() => {
+            if (!$('#dealButton').hasClass('unlit')) {
+                this.dealCards();
+            }
+        });
+        
+        // Double button
+        $('#doubleButton').click(() => {
+            if (!$('#doubleButton').hasClass('unlit')) {
+                this.playDoubleGame();
+            }
+        });
+        
+        // Keyboard shortcuts
+        $(document).keydown((e) => {
+            // Space key for Deal/Draw
+            if (e.keyCode === 32) {
+                if (!$('#dealButton').hasClass('unlit')) {
+                    this.dealCards();
+                }
+                e.preventDefault(); // Prevent page scrolling
+            }
+            
+            // Enter key for Double
+            if (e.keyCode === 13) {
+                if (!$('#doubleButton').hasClass('unlit')) {
+                    this.playDoubleGame();
+                }
+                e.preventDefault();
+            }
+        });
         
         // Card selection
         $('.card-slot').click((e) => {
-            if (!this.isFirstDeal) {
+            if (!this.isFirstDeal && !this.doubleMode) {
                 const $card = $(e.currentTarget);
                 $card.toggleClass('locked');
                 console.log(`Card ${$card.data('index')} ${$card.hasClass('locked') ? 'locked' : 'unlocked'}`);
@@ -78,6 +122,16 @@ class PokerGUI {
             }
         });
         
+        // Instructions button
+        $('#instructionsButton').on('click', () => {
+            $('#instructionsPopup').fadeIn(300);
+        });
+        
+        // Close instructions button
+        $('#closeInstructionsButton').on('click', () => {
+            $('#instructionsPopup').fadeOut(300);
+        });
+        
         // Debug mode password
         $('.debug-password').on('input', (e) => {
             if ($(e.currentTarget).val().toLowerCase() === 'admin') {
@@ -89,9 +143,10 @@ class PokerGUI {
 
     // Increase bet amount
     increaseBet() {
+        const currentBalance = parseInt($('#balance').text());
+        
         if (this.currentBetIndex < this.betOptions.length - 1) {
             const nextBet = this.betOptions[this.currentBetIndex + 1];
-            const currentBalance = parseInt($('#balance').text());
             if (nextBet <= currentBalance) {
                 this.currentBetIndex++;
                 this.currentBet = nextBet;
@@ -111,7 +166,7 @@ class PokerGUI {
 
     // Update bet display and payout table
     updateBetDisplay() {
-        $('.bet-display').text(`Bet: ${this.currentBet}€`);
+        $('.bet-display span').text(`Bet: ${this.currentBet}€`);
         this.updatePayoutTable();
     }
 
@@ -128,24 +183,28 @@ class PokerGUI {
         });
     }
 
-    // Show bet buttons
+    // Enable bet buttons
     showBetButtons() {
-        $('.bet-button').removeClass('hidden');
+        $('.bet-button').removeClass('unlit');
     }
 
-    // Hide bet buttons
+    // Disable bet buttons
     hideBetButtons() {
-        $('.bet-button').addClass('hidden');
+        $('.bet-button').addClass('unlit');
     }
 
     // Adjust bet based on balance
     adjustBetToBalance() {
         const currentBalance = parseInt($('#balance').text());
-        while (this.currentBet > currentBalance && this.currentBetIndex > 0) {
-            this.currentBetIndex--;
-            this.currentBet = this.betOptions[this.currentBetIndex];
+        
+        if (this.currentBet > currentBalance) {
+            // Using predefined options
+            while (this.currentBet > currentBalance && this.currentBetIndex > 0) {
+                this.currentBetIndex--;
+                this.currentBet = this.betOptions[this.currentBetIndex];
+            }
+            this.updateBetDisplay();
         }
-        this.updateBetDisplay();
     }
 
     // Animate balance change
@@ -158,39 +217,55 @@ class PokerGUI {
         $('.balance-text').removeClass('bounce bounce-small bounce-large');
         
         if (difference !== 0) {
-            const isLargeWin = difference > this.currentBet * 10;
-            const duration = isLargeWin ? 2000 : 1000; // 2 seconds for large wins, 1 second for small
-            const steps = Math.abs(difference);
+            // Calculate the increment amount (2% of difference, minimum 1)
+            const incrementAmount = Math.max(1, Math.ceil(Math.abs(difference) * 0.02));
+            
+            // Calculate number of steps based on increment amount
+            const steps = Math.ceil(Math.abs(difference) / incrementAmount);
+            
+            // Duration based on steps, but capped to make large wins faster
+            const duration = Math.min(1500, Math.max(500, steps * 20));
             const stepDuration = duration / steps;
+            
             let currentStep = 0;
+            let currentValue = currentBalance;
             
             // Clear any existing animation interval
             if (window.balanceAnimation) {
                 clearInterval(window.balanceAnimation);
             }
             
+            // Add appropriate bounce class based on win size
+            if (difference > 0) {
+                if (difference > this.currentBet * 10) {
+                    $('.balance-text').addClass('bounce-large');
+                } else if (difference > this.currentBet) {
+                    $('.balance-text').addClass('bounce-small');
+                } else {
+                    $('.balance-text').addClass('bounce');
+                }
+            }
+            
             window.balanceAnimation = setInterval(() => {
                 currentStep++;
-                const progress = currentStep / steps;
-                // Accelerating easing function
-                const easedProgress = progress < 0.5 
-                    ? 4 * progress * progress * progress 
-                    : 1 - Math.pow(-2 * progress + 2, 3) / 2;
                 
-                const currentValue = Math.round(currentBalance + (difference * easedProgress));
+                // Calculate the next value
+                if (difference > 0) {
+                    currentValue = Math.min(newBalance, currentValue + incrementAmount);
+                } else {
+                    currentValue = Math.max(newBalance, currentValue - incrementAmount);
+                }
+                
+                // Update the display
                 $('#balance').text(currentValue);
                 
-                if (currentStep >= steps) {
+                // Check if we're done
+                if (currentValue === newBalance || currentStep >= steps) {
                     clearInterval(window.balanceAnimation);
                     $('#balance').text(newBalance);
                     
-                    if (newBalance <= 0) {
-                        $('.message').addClass('game-over').text('Game over!');
-                        $('#dealButton').prop('disabled', true);
-                    } else {
-                        // Adjust bet if needed after balance change
-                        this.adjustBetToBalance();
-                    }
+                    // Adjust bet if needed after balance change
+                    this.adjustBetToBalance();
                 }
             }, stepDuration);
 
@@ -216,31 +291,74 @@ class PokerGUI {
     // Update uranium meter level
     updateUraniumMeter(level) {
         // Ensure level is between 0 and 100
+        const previousLevel = this.uraniumLevel;
         this.uraniumLevel = Math.min(Math.max(level, 0), 100);
         
-        // Update the uranium liquid height
-        $('.uranium-liquid').css('height', `${this.uraniumLevel}%`);
+        // Animate the percentage text with rolling numbers
+        this.animateUraniumPercentage(previousLevel, this.uraniumLevel);
         
-        // Update the percentage text
-        $('.uranium-percentage').text(`${Math.round(this.uraniumLevel)}%`);
+        // Add glow effect to the nuke image based on level
+        const glowIntensity = Math.min(this.uraniumLevel / 100 * 25 + 10, 35);
+        $('.nuke-image').css('filter', `drop-shadow(0 0 ${glowIntensity/2}px rgba(255, 255, 0, ${this.uraniumLevel / 100 * 0.5 + 0.5}))`);
         
-        // Change text color based on whether it's over the liquid or not
-        // If the liquid level is above 45%, the text is over the liquid
-        if (this.uraniumLevel > 45) {
-            $('.uranium-percentage').css({
-                'color': 'black',
-                'text-shadow': '0 0 3px rgba(255, 255, 255, 1)'
-            });
+        // Gradually show/hide nuke-container based on uraniumLevel
+        if (this.uraniumLevel === 0) {
+            $('.nuke-container').hide();
+        } else if (previousLevel === 0 && this.uraniumLevel > 0) {
+            // If transitioning from 0 to a positive value, fade in
+            $('.nuke-container').css('opacity', 0).show().animate({opacity: 1}, 1000);
         } else {
-            $('.uranium-percentage').css({
-                'color': 'white',
-                'text-shadow': '0 0 3px rgba(0, 0, 0, 1)'
-            });
+            // Ensure it's visible
+            $('.nuke-container').show();
+        }
+    }
+    
+    // Animate uranium percentage with rolling numbers
+    animateUraniumPercentage(fromValue, toValue) {
+        // Clear any existing animation
+        if (this.uraniumAnimation) {
+            clearInterval(this.uraniumAnimation);
         }
         
-        // Add glow intensity based on level - increased for better visibility
-        const glowIntensity = Math.min(this.uraniumLevel / 100 * 25 + 10, 35);
-        $('.uranium-liquid').css('box-shadow', `0 0 ${glowIntensity}px ${glowIntensity / 2}px rgba(255, 255, 0, ${this.uraniumLevel / 100 * 0.5 + 0.5})`);
+        // Round the values
+        fromValue = Math.round(fromValue);
+        toValue = Math.round(toValue);
+        
+        // If values are the same, just update the text
+        if (fromValue === toValue) {
+            $('.nuke-percentage').text(`Nuke ${toValue}% Completed`);
+            return;
+        }
+        
+        // Calculate animation steps
+        const duration = 1000; // 1 second
+        const fps = 30;
+        const steps = duration / (1000 / fps);
+        const increment = (toValue - fromValue) / steps;
+        
+        let currentStep = 0;
+        let currentValue = fromValue;
+        
+        // Start the animation
+        this.uraniumAnimation = setInterval(() => {
+            currentStep++;
+            
+            // Calculate the next value
+            if (fromValue < toValue) {
+                currentValue = Math.min(toValue, currentValue + increment);
+            } else {
+                currentValue = Math.max(toValue, currentValue + increment);
+            }
+            
+            // Update the display
+            $('.nuke-percentage').text(`Nuke ${Math.round(currentValue)}% Completed`);
+            
+            // Check if we're done
+            if (currentStep >= steps || Math.round(currentValue) === toValue) {
+                clearInterval(this.uraniumAnimation);
+                $('.nuke-percentage').text(`Nuke ${toValue}% Completed`);
+            }
+        }, 1000 / fps);
     }
     
     // Fill uranium meter with random amount
@@ -372,11 +490,6 @@ class PokerGUI {
             indicesToLock = [0, 1, 2, 3, 4];
         }
         
-        // If no flush, check for straight
-        if (indicesToLock.length === 0 && isStraight) {
-            indicesToLock = [0, 1, 2, 3, 4];
-        }
-        
         // If no straight, check for pairs
         if (indicesToLock.length === 0) {
             let pairIndices = [];
@@ -414,19 +527,28 @@ class PokerGUI {
 
     // Main deal cards function
     async dealCards() {
-        // Hide button during animations
-        $('#dealButton').addClass('hidden');
+        // Disable buttons during animations by making them unlit
+        $('#dealButton, #doubleButton').addClass('unlit');
+        
+        // If we're in double mode, return to normal mode
+        if (this.doubleMode) {
+            this.exitDoubleMode();
+            return;
+        }
         
         if (this.isFirstDeal) {
-            this.hideBetButtons(); // Hide bet buttons during round
+            // Make bet buttons unlit during round instead of hiding them
+            $('.bet-button').addClass('unlit');
+            
             // Instantly remove all cards
             $('.card-image').attr('src', '').removeClass('dealt winning');
             $('.payout-table tr').removeClass('highlight');
             $('#message').text('');
             
             if (this.balance < this.currentBet) {
-                $('#message').text('Not enough balance to play!');
-                $('#dealButton').removeClass('hidden');
+                $('#message').text('Not enough money!');
+                $('#dealButton').removeClass('unlit');
+                $('.bet-button').removeClass('unlit');
                 return;
             }
             
@@ -440,7 +562,7 @@ class PokerGUI {
                 
                 // Deal special hand with only J, Q, K, A
                 this.dealUraniumHand();
-                $('#message').text('Uranium Meltdown! Special hand dealt!');
+                $('#message').text('Nuke Exploded! Special hand dealt!');
             } else {
                 // Check if we have a debug hand to use
                 if (this.nextDebugHand.length === 5 && this.validateDebugHand(this.nextDebugHand)) {
@@ -465,7 +587,7 @@ class PokerGUI {
             }
             
             this.isFirstDeal = false;
-            $('#dealButton').text('Draw').removeClass('hidden');
+            $('#dealButton').html('<div class="button-content"><span class="main-label">Draw</span><div class="shortcut-label">[Space]</div></div>').removeClass('unlit');
             
             // Apply auto lock if enabled
             if ($('#autoLockCheckbox').is(':checked')) {
@@ -508,6 +630,12 @@ class PokerGUI {
                 this.animateBalance(this.balance);
                 $('#message').text(`Won ${result.winnings}€! (${result.type})`);
                 this.highlightWinningHand(result);
+                
+                // Store the win amount for potential doubling
+                this.lastWinAmount = result.winnings;
+                
+                // Activate the double button
+                $('#doubleButton').removeClass('unlit');
             } else {
                 $('#message').text('No winnings');
                 // Remove any previous winning highlights
@@ -520,7 +648,7 @@ class PokerGUI {
             
             // Reset for next game
             this.isFirstDeal = true;
-            $('#dealButton').text('Deal').removeClass('hidden');
+            $('#dealButton').html('<div class="button-content"><span class="main-label">Deal</span><div class="shortcut-label">[Space]</div></div>').removeClass('unlit');
             $('.card-slot').removeClass('locked');
             
             // Reshuffle if deck is running low
@@ -529,8 +657,72 @@ class PokerGUI {
                 this.pokerGame.initializeDeck();
             }
             
-            this.showBetButtons(); // Show bet buttons between rounds
+            // Enable bet buttons between rounds
+            $('.bet-button').removeClass('unlit');
         }
+    }
+
+    // Create falling coins animation
+    createCoinAnimation() {
+        // Number of coins based on win amount
+        const numCoins = 50;
+        
+        // Create and append coins to the body
+        for (let i = 0; i < numCoins; i++) {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            
+            // Random horizontal position
+            const randomX = Math.random() * window.innerWidth;
+            coin.style.left = `${randomX}px`;
+            
+            // Random delay
+            const randomDelay = Math.random() * 1;  // Reduced from 1.5s to match faster animation
+            coin.style.animationDelay = `${randomDelay}s`;
+            
+            // Random size variation (slightly larger)
+            const randomSize = 30 + Math.random() * 25;  // Increased from 20-40 to 30-55
+            coin.style.width = `${randomSize}px`;
+            coin.style.height = `${randomSize}px`;
+            
+            // Random rotation
+            const randomRotation = Math.random() * 360;
+            coin.style.transform = `rotate(${randomRotation}deg)`;
+            
+            // Append to body
+            document.body.appendChild(coin);
+            
+            // Remove after animation completes
+            setTimeout(() => {
+                if (coin.parentNode) {
+                    coin.parentNode.removeChild(coin);
+                }
+            }, (randomDelay + 1.33) * 1000); // Updated animation duration + delay
+        }
+    }
+
+    // Show "BIG WIN!" popup
+    showBigWinPopup() {
+        // Remove any existing popup
+        $('.big-win-popup').remove();
+        
+        // Create the popup
+        const popup = document.createElement('div');
+        popup.className = 'big-win-popup';
+        popup.textContent = 'BIG WIN!';
+        
+        // Ensure it's added to the body for proper positioning
+        document.body.appendChild(popup);
+        
+        // Force a reflow to ensure the animation works properly
+        void popup.offsetWidth;
+        
+        // Remove after animation completes
+        setTimeout(() => {
+            if (popup.parentNode) {
+                popup.parentNode.removeChild(popup);
+            }
+        }, 2000); // Animation duration
     }
 
     // Highlight winning hand in the payout table and cards
@@ -555,6 +747,16 @@ class PokerGUI {
         const currentHand = this.pokerGame.getHand();
         const values = currentHand.map(card => card.value);
         const suits = currentHand.map(card => card.suit);
+
+        // Check if it's a high hand win
+        const highHands = ['Royal Flush', 'Straight Flush', 'Four of a Kind', 'Full House', 'Flush'];
+        if (highHands.includes(result.type)) {
+            // Create coin animation for high hands
+            this.createCoinAnimation();
+            
+            // Show "BIG WIN!" popup
+            this.showBigWinPopup();
+        }
 
         switch (result.type) {
             case 'Royal Flush':
@@ -729,24 +931,140 @@ class PokerGUI {
             // Add glow effect to the container
             $('.uranium-meter-container').css('box-shadow', '0 0 30px 15px rgba(255, 255, 0, 0.8)');
             
-            // Play a sound effect if available
-            if (this.winSound) {
-                this.winSound.play();
-            }
-            
-            // After 1.5 seconds, stop shaking and empty the meter
+            // After 0.5 second, animate the nuke dropping
             setTimeout(() => {
-                // Stop the shaking
-                $('.uranium-meter-container').css('animation', '');
-                $('.uranium-meter-container').css('box-shadow', '');
+                // Get the nuke image element
+                const nukeImage = $('.nuke-image');
                 
-                // Empty the meter to 0%
-                this.uraniumLevel = 0;
-                this.updateUraniumMeter(0);
+                // Get the current position of the nuke image
+                const nukePosition = nukeImage.offset();
                 
-                resolve();
-            }, 1500);
+                // Get the position of the cards container (middle point)
+                const cardsContainer = $('.cards-container');
+                const cardsPosition = cardsContainer.offset();
+                const cardsMiddleX = cardsPosition.left + cardsContainer.width() / 2;
+                const cardsMiddleY = cardsPosition.top + cardsContainer.height() / 2;
+                
+                // Create a clone of the nuke image for the animation
+                const nukeClone = nukeImage.clone();
+                
+                // Set the clone's initial position to match the original nuke
+                nukeClone.css({
+                    position: 'fixed',
+                    top: nukePosition.top + 'px',
+                    left: nukePosition.left + 'px',
+                    width: nukeImage.width() + 'px',
+                    height: nukeImage.height() + 'px',
+                    zIndex: 1000,
+                    filter: 'drop-shadow(0 0 20px rgba(255, 255, 0, 0.8))',
+                    transform: 'none',
+                    margin: 0,
+                    padding: 0
+                });
+                
+                // Append the clone to the body
+                $('body').append(nukeClone);
+                
+                // Hide the original nuke image
+                nukeImage.css('visibility', 'hidden');
+                
+                // Create a custom animation for the nuke to target the cards center
+                const customAnimation = `
+                    @keyframes customNukeDrop {
+                        0% {
+                            top: ${nukePosition.top}px;
+                            left: ${nukePosition.left}px;
+                            transform: scale(1) rotate(0deg);
+                            opacity: 1;
+                        }
+                        50% {
+                            top: ${(nukePosition.top + cardsMiddleY) / 2}px;
+                            left: ${(nukePosition.left + cardsMiddleX) / 2}px;
+                            transform: scale(1.5) rotate(180deg);
+                            opacity: 1;
+                        }
+                        80% {
+                            top: ${cardsMiddleY - 50}px;
+                            left: ${cardsMiddleX - 50}px;
+                            transform: scale(2) rotate(360deg);
+                            opacity: 0.8;
+                        }
+                        100% {
+                            top: ${cardsMiddleY}px;
+                            left: ${cardsMiddleX}px;
+                            transform: scale(3) rotate(720deg);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                
+                // Add the custom animation to the head
+                const styleElement = document.createElement('style');
+                styleElement.innerHTML = customAnimation;
+                document.head.appendChild(styleElement);
+                
+                // Apply the custom animation to the clone
+                nukeClone.css('animation', 'customNukeDrop 1.5s forwards');
+                
+                // After animation completes, remove the clone and show the original
+                setTimeout(() => {
+                    // Remove the clone
+                    nukeClone.remove();
+                    
+                    // Remove the custom animation style
+                    document.head.removeChild(styleElement);
+                    
+                    // Show the original nuke image
+                    nukeImage.css('visibility', 'visible');
+                    
+                    // Stop the shaking
+                    $('.uranium-meter-container').css('animation', '');
+                    $('.uranium-meter-container').css('box-shadow', '');
+                    
+                    // Empty the meter to 0%
+                    this.uraniumLevel = 0;
+                    this.updateUraniumMeter(0);
+                    
+                    // Create an explosion effect at the cards
+                    this.createExplosionEffect(cardsMiddleX, cardsMiddleY);
+                    
+                    resolve();
+                }, 1500);
+            }, 500);
         });
+    }
+    
+    // Create explosion effect
+    createExplosionEffect(x, y) {
+        // Play explosion sound at 50% volume
+        this.explosionSound.volume = 0.5;
+        this.explosionSound.play();
+        
+        // Create explosion div
+        const explosion = $('<div class="explosion"></div>');
+        explosion.css({
+            position: 'fixed',
+            top: y - 150 + 'px',
+            left: x - 150 + 'px',
+            width: '300px',
+            height: '300px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,0,0.8) 0%, rgba(255,165,0,0.6) 50%, rgba(255,0,0,0.4) 100%)',
+            boxShadow: '0 0 50px 25px rgba(255, 255, 0, 0.8)',
+            zIndex: 999
+        });
+        
+        // Append to body
+        $('body').append(explosion);
+        
+        // Add screen shake effect
+        $('body').addClass('screen-shake');
+        
+        // Remove after animation completes
+        setTimeout(() => {
+            explosion.remove();
+            $('body').removeClass('screen-shake');
+        }, 500);
     }
     
     // Deal a special hand with only face cards (J, Q, K, A)
@@ -770,6 +1088,161 @@ class PokerGUI {
         
         // Set the hand
         this.pokerGame.setHand(specialHand);
+    }
+
+    // Play the double game
+    async playDoubleGame() {
+        console.log("Starting double game with win amount:", this.lastWinAmount);
+        
+        // Enter double mode
+        this.doubleMode = true;
+        
+        // Disable buttons during animations
+        $('#dealButton, #doubleButton').addClass('unlit');
+        
+        // Clear the cards and remove any highlights
+        $('.card-image').attr('src', '').removeClass('dealt winning');
+        $('.card-slot').removeClass('locked');
+        $('.payout-table tr').removeClass('highlight');
+        
+        // Show the dealer and player labels
+        $('.dealer-label').css('display', 'block');
+        $('.player-label').css('display', 'block');
+        
+        // Update message
+        $('#message').text(`Double or nothing: ${this.lastWinAmount}€`);
+        
+        // Deal 4 cards for the double game (2 for dealer, 2 for player)
+        const doubleCards = this.pokerGame.deck.splice(0, 4);
+        
+        // Deal first dealer card (position 0)
+        await this.dealCardWithAnimation(0, doubleCards[0], 300);
+        
+        // Deal first player card (position 3)
+        await this.dealCardWithAnimation(3, doubleCards[1], 300);
+        
+        // Deal second dealer card (position 1)
+        await this.dealCardWithAnimation(1, doubleCards[2], 300);
+        
+        // Deal second player card (position 4)
+        await this.dealCardWithAnimation(4, doubleCards[3], 300);
+        
+        // Small delay before showing results
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Determine the winner by evaluating poker hands
+        const dealerHand = [doubleCards[0], doubleCards[2]];
+        const playerHand = [doubleCards[1], doubleCards[3]];
+        
+        const dealerRank = this.evaluateDoubleHand(dealerHand);
+        const playerRank = this.evaluateDoubleHand(playerHand);
+        
+        console.log(`Dealer has ${dealerRank.type} (${dealerRank.value}), Player has ${playerRank.type} (${playerRank.value})`);
+        
+        let playerWins = false;
+        
+        // Compare hand ranks
+        if (dealerRank.rank < playerRank.rank) {
+            playerWins = true;
+        } else if (dealerRank.rank === playerRank.rank) {
+            // If same rank, compare values
+            if (dealerRank.value < playerRank.value) {
+                playerWins = true;
+            }
+        }
+        
+        // Highlight the winning hand
+        if (playerWins) {
+            this.highlightWinningDoubleHand(playerHand, true);
+        } else {
+            this.highlightWinningDoubleHand(dealerHand, false);
+        }
+        
+        if (playerWins) {
+            // Player wins
+            const doubledAmount = this.lastWinAmount * 2;
+            this.balance += doubledAmount;
+            this.animateBalance(this.balance);
+            $('#message').text(`You win! Doubled to ${doubledAmount}€`);
+            this.winSound.play();
+        } else {
+            // Dealer wins (including ties)
+            $('#message').text('Dealer wins. Better luck next time!');
+            // The winnings were already added to the balance, so we need to subtract them
+            this.balance -= this.lastWinAmount;
+            this.animateBalance(this.balance);
+        }
+        
+        // Enable the deal button to continue
+        $('#dealButton').html('<div class="button-content"><span class="main-label">Continue</span><div class="shortcut-label">[Space]</div></div>').removeClass('unlit');
+    }
+    
+    // Evaluate a hand for the double game
+    evaluateDoubleHand(cards) {
+        if (cards.length !== 2) {
+            console.error("Invalid hand for double game evaluation");
+            return { rank: 0, type: "Invalid", value: 0 };
+        }
+        
+        // Check if it's a pair
+        if (cards[0].value === cards[1].value) {
+            // It's a pair
+            const pairValue = this.pokerGame.valueOrder.indexOf(cards[0].value);
+            return { 
+                rank: 2, 
+                type: "Pair", 
+                value: pairValue 
+            };
+        } else {
+            // Not a pair, evaluate high card
+            const values = cards.map(card => this.pokerGame.valueOrder.indexOf(card.value));
+            const highValue = Math.max(...values);
+            return { 
+                rank: 1, 
+                type: "High Card", 
+                value: highValue 
+            };
+        }
+    }
+    
+    // Highlight the winning hand in the double game
+    highlightWinningDoubleHand(cards, isPlayer) {
+        // Remove any existing highlights
+        $('.card-image').removeClass('winning');
+        
+        // Determine which card slots to highlight based on whether it's player or dealer
+        const indices = isPlayer ? [3, 4] : [0, 1];
+        
+        // Highlight both cards
+        indices.forEach(index => {
+            const cardImage = $(`.card-slot[data-index="${index}"] .card-image`);
+            cardImage.removeClass('dealt').addClass('winning');
+        });
+    }
+    
+    // Exit double mode and return to normal game
+    exitDoubleMode() {
+        this.doubleMode = false;
+        this.lastWinAmount = 0;
+        
+        // Hide the dealer and player labels
+        $('.dealer-label').css('display', 'none');
+        $('.player-label').css('display', 'none');
+        
+        // Clear the cards
+        $('.card-image').attr('src', '').removeClass('dealt winning');
+        
+        // Reset the deal button
+        $('#dealButton').html('<div class="button-content"><span class="main-label">Deal</span><div class="shortcut-label">[Space]</div></div>').removeClass('unlit');
+        
+        // Disable the double button
+        $('#doubleButton').addClass('unlit');
+        
+        // Clear message
+        $('#message').text('');
+        
+        // Enable bet buttons
+        $('.bet-button').removeClass('unlit');
     }
 }
 
